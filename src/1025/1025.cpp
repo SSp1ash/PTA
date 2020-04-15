@@ -1,4 +1,5 @@
 #include<iostream>
+#include<cstdio>
 #include<string>
 #include<map>
 #include<algorithm>
@@ -8,52 +9,65 @@ class LNode{
 		string address;
 		int data;
 		string nextAddress;
-		LNode *next;
-		LNode(string address,int data,string nextAddress):address(address),data(data),next(NULL),nextAddress(nextAddress){}
-		LNode():address(""),data(0),next(NULL),nextAddress(""){}
+		LNode(string address,int data,string nextAddress):address(address),data(data),nextAddress(nextAddress){}
+		LNode():address(""),data(0),nextAddress(""){}
 };
-LNode reverseLink(LNode head,int k){
-	if(head==NULL) return NULL;
-	int i=k;
-	LNode temp;
-	while(i--){
-		head=head->next;
-		if(head==NULL){
-			return NULL;
-		}
-	}
-	temp=head->next;
-	
-}
-LNode reverse(LNode *head){
-	if(head->next=NULL){
-		return head;
-	}
-	head->next->next=head;
-	head->next=NULL;
-}
-void link(map<string,LNode> &datas,string fa){
+map<string,LNode> datas;
+LNode* getNext(LNode *p){
 	map<string,LNode>::iterator it;
-	while(fa!="-1"){
-		it=datas.find(fa);
-		it->second.next=&datas.find(it->second.nextAddress)->second;
-		fa=it->second.nextAddress;
+	if(p->nextAddress!="-1"){
+		it=datas.find(p->nextAddress);
+		return &it->second;
 	}
-	if(fa=="-1"){
-		it->second.next=NULL;
+	return NULL;
+}
+void print(LNode *p){
+	while(p){
+		printf("%s %d %s\n",p->address.c_str(),p->data,p->nextAddress.c_str());
+//		cout<<p->address<<" "<<p->data<<" "<<p->nextAddress<<endl;
+		p=getNext(p);
 	}
 }
-void print(LNode *head){
-	while(head!=NULL){
-		cout<<head->nextAddress<<" ";
-		head=head->next;
+void reverse(LNode *head){
+	if(head==NULL||head->nextAddress=="-1"){
+		return;
 	}
+	reverse(getNext(head));
+	getNext(head)->nextAddress=head->address;
+	head->nextAddress="-1";
+}
+int flag=0;
+LNode* reverseList(LNode *head,int k,LNode *&rrhead){
+	if(!head) return NULL;
+	flag++;
+	int i=k;
+	i--;
+	LNode *p=head;
+	while(i--){
+		p=getNext(p);
+		if(!p){
+			if(flag==1){
+				rrhead=head;
+			}
+			return head;
+		} 
+	}
+	if(flag==1){
+		rrhead=p;
+	}
+	LNode *temp=getNext(p);
+	p->nextAddress="-1";
+	reverse(head);
+	if(temp==NULL){
+		head->nextAddress="-1";
+	}
+	else head->nextAddress=reverseList(temp,k,rrhead)->address;
+	return p;
 }
 int main(){
 	string fa;
 	int n,k;
 	cin>>fa>>n>>k;
-	map<string,LNode> datas;
 	for(int i=0;i<n;i++){
 		int data;
 		string address,nextAddress;
@@ -61,9 +75,11 @@ int main(){
 		LNode temp(address,data,nextAddress);
 		datas.insert(pair<string,LNode>(address,temp));
 	}
-	link(datas,fa);
+	
 	map<string,LNode>::iterator it;
 	it=datas.find(fa);
-	print(&it->second);
-	
+	LNode *rhead;
+	reverseList(&it->second,k,rhead);
+	print(rhead);
+	return 0;
 }
